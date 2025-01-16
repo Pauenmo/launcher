@@ -14,5 +14,6 @@ By default, launcher fuzzy finds directories inside the user's home folder. To c
 
 ## Installation
 
-
-
+```bash
+sudo wget -O /usr/local/bin/launcher https://raw.githubusercontent.com/Pauenmo/launcher/refs/heads/main/launcher && sudo chmod +x /usr/local/bin/launcher
+```
