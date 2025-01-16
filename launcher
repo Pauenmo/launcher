@@ -1,0 +1,40 @@
+#!/bin/bash
+
+CONFIG_FILE="$HOME/.launcher.conf"
+DEFAULT_SEARCH_PATH="$HOME"
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+fi
+
+# Allow the user to fuzzy find the directory if no argument is provided
+if [ "$#" -eq 0 ]; then
+    echo "No directory provided. Launching fuzzy finder."
+    search_path=${SEARCH_PATH:-$DEFAULT_SEARCH_PATH}
+    target_dir=$(cd "$search_path" && find . -type d | fzf)
+    if [ -z "$target_dir" ]; then
+        echo "No directory selected. Exiting."
+        exit 1
+    fi
+    target_dir="$search_path/$target_dir"
+else
+    target_dir="$1"
+fi
+
+if [ ! -d "$target_dir" ]; then
+    echo "Error: Directory '$target_dir' does not exist."
+    exit 1
+fi
+
+cd "$target_dir" || exit
+
+session_name="$(basename "$target_dir")"
+
+if tmux has-session -t "$session_name" 2>/dev/null; then
+    echo "Tmux session '$session_name' already exists. Attaching to it."
+    tmux attach-session -t "$session_name"
+else
+    echo "Creating new tmux session '$session_name'."
+    tmux new-session -d -s "$session_name"
+    tmux send-keys -t "$session_name" "nvim ." C-m
+    tmux attach-session -t "$session_name"
+fi
